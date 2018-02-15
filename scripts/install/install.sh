@@ -50,6 +50,12 @@ check_homes_for_install(){
 	[ -d $ANT_HOME ] && echo "found ANT_HOME:$ANT_HOME"|| install_ant
 	[ -d $AXIS_HOME ] && echo "found AXIS_HOME:$AXIS_HOME"|| download_axis_jar;
 	[ -d $JBOSS_HOME ] && echo "found JBOSS_HOME:$JBOSS_HOME"|| download_wildfly && install_wildfly
+
+
+        download_postgresdriver
+        copy_postgres_driver_to_wildfly
+
+
 }
 
 download_i2b2_source(){
