@@ -1,0 +1,73 @@
+diff -ruN old/edu/harvard/i2b2/crc/dao/pdo/input/PatientListTypeHandler.java new/edu/harvard/i2b2/crc/dao/pdo/input/PatientListTypeHandler.java
+--- old/edu/harvard/i2b2/crc/dao/pdo/input/PatientListTypeHandler.java	2016-04-06 20:24:03.705810409 -0400
++++ new/edu/harvard/i2b2/crc/dao/pdo/input/PatientListTypeHandler.java	2016-04-06 20:23:14.673807695 -0400
+@@ -191,7 +191,15 @@
+ 			// this.getEnumerationList();
+ 			String tempTableName = this.getTempTableName();
+ 
+-			sqlString = " select char_param1 from " + tempTableName + "  ";
++			if (dataSourceLookup.getServerType().equalsIgnoreCase(
++					DAOFactoryHelper.POSTGRESQL))
++			{
++			sqlString = " select cast(char_param1 as integer) from " + tempTableName + "  ";
++			}
++			else {
++				sqlString = " select char_param1 from " + tempTableName + "  ";
++
++			}
+ 		} else if (patientListType.getEntirePatientSet() != null) {
+ 			// by default get first 100 rows
+ 			if ((minIndex == 0) && (maxIndex == 0)) {
+@@ -339,6 +347,7 @@
+ 
+ 		String tempTableName = this.getTempTableName();
+ 		deleteTempTableFlag = true;
++		deleteTempTable(conn);
+ 		// create temp table
+ 		java.sql.Statement tempStmt = conn.createStatement();
+ 		if (dataSourceLookup.getServerType().equalsIgnoreCase(
+@@ -347,6 +356,13 @@
+ 					+ getTempTableName()
+ 					+ " (set_index int, char_param1 varchar(100) )";
+ 			tempStmt.executeUpdate(createTempInputListTable);
++		} else if (dataSourceLookup.getServerType().equalsIgnoreCase(
++				DAOFactoryHelper.POSTGRESQL))
++		{
++			String createTempInputListTable = "create temp table "
++					+ getTempTableName()
++					+ " (set_index int, char_param1 varchar(100) )";
++			tempStmt.executeUpdate(createTempInputListTable);
+ 		}
+ 		int i = 0, j = 1;
+ 
+@@ -405,7 +421,7 @@
+ 						"delete " + getTempTableName());
+ 			}
+ 		} catch (SQLException sqle) {
+-			throw sqle;
++			//throw sqle;
+ 		} finally {
+ 			try {
+ 				deleteStmt.close();
+@@ -422,6 +438,10 @@
+ 				DAOFactoryHelper.ORACLE)) {
+ 			tempTableName = this.getDbSchemaName()
+ 					+ FactRelatedQueryHandler.TEMP_PARAM_TABLE;
++		} else if (dataSourceLookup.getServerType().equalsIgnoreCase(
++				DAOFactoryHelper.POSTGRESQL)) {
++			tempTableName = SQLServerFactRelatedQueryHandler.TEMP_PDO_INPUTLIST_TABLE.substring(1);
++			
+ 		} else {
+ 			tempTableName = this.getDbSchemaName()
+ 					+ SQLServerFactRelatedQueryHandler.TEMP_PDO_INPUTLIST_TABLE;
+diff -ruN old/edu/harvard/i2b2/crc/dao/pdo/PageTotalDao.java new/edu/harvard/i2b2/crc/dao/pdo/PageTotalDao.java
+--- old/edu/harvard/i2b2/crc/dao/pdo/PageTotalDao.java	2016-04-06 20:24:03.702810409 -0400
++++ new/edu/harvard/i2b2/crc/dao/pdo/PageTotalDao.java	2016-04-06 20:23:14.671807695 -0400
+@@ -244,6 +244,7 @@
+ 	private void upLoadTempTableForMin(Connection conn,
+ 			IInputOptionListHandler inputOptionListHandler) throws SQLException {
+ 		List<String> enumList = inputOptionListHandler.getEnumerationList();
++		deleteTempTable(conn);
+ 		// create temp table
+ 		java.sql.Statement tempStmt = conn.createStatement();
+ 		String createTempInputListTable = "create table "
