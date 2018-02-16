@@ -8,7 +8,8 @@ cd $BASE
 
 
 #CONFIGURE
-JBOSS_HOME=$LOCAL/wildfly-9.0.1.Final
+#JBOSS_HOME=$LOCAL/wildfly-9.0.1.Final
+JBOSS_HOME=$LOCAL/wildfly-10.1.0.Final
 JAVA_HOME=$LOCAL/jdk1.8.0_60
 AXIS_HOME=$LOCAL/axis
 ANT_HOME=$LOCAL/ant
@@ -19,7 +20,10 @@ echo "in INSTALL FILE PWD: $PWD"
 AXIS_FILE=axis2-1.6.2-war.zip
 JDK_FILE=jdk-8u92-linux-x64.tar.gz
 ANT_FILE=apache-ant-1.9.6-bin.tar.bz2
-JBOSS_FILE=wildfly-9.0.1.Final.zip
+JBOSS_FILE=wildfly-10.1.0.Final.zip
+POSTGRESQLDRIVER=postgresql-9.2-1002.jdbc4.jar
+
+
 
 #check if the home directories are found as specified by user, or use default dirs
 [ -d $JAVA_HOME ] || JAVA_HOME=$LOCAL/jdk1.8.0_92;#$LOCAL/${JDK_FILE/\.tar\.gz/}
@@ -46,6 +50,12 @@ check_homes_for_install(){
 	[ -d $ANT_HOME ] && echo "found ANT_HOME:$ANT_HOME"|| install_ant
 	[ -d $AXIS_HOME ] && echo "found AXIS_HOME:$AXIS_HOME"|| download_axis_jar;
 	[ -d $JBOSS_HOME ] && echo "found JBOSS_HOME:$JBOSS_HOME"|| download_wildfly && install_wildfly
+
+
+        download_postgresdriver
+        copy_postgres_driver_to_wildfly
+
+
 }
 
 download_i2b2_source(){
@@ -146,13 +156,21 @@ download_axis_jar(){
 	cd $BASE
 }
 
+download_postgresdriver(){
+	cd $BASE/packages
+	if [ -f $POSTGRESQLDRIVER ]
+	then echo "FOUND $POSTGRESQLDRIVER"
+	else
+                wget https://www.dropbox.com/s/9lm4wwc0viya05n/postgresql-9.2-1002.jdbc4.jar
+	fi
+	cd $BASE_CORE
+}
 download_wildfly(){
 	cd $BASE/packages
 	if [ -f $JBOSS_FILE ]
 	then echo "FOUND $JBOSS_FILE"
 	else
-		#wget http://download.jboss.org/wildfly/9.0.1.Final/wildfly-9.0.1.Final.tar.gz
-		wget https://www.dropbox.com/s/187wgnwnmglt2wd/wildfly-9.0.1.Final.zip
+		wget https://www.dropbox.com/s/qn0so6eckb13n46/wildfly-10.1.0.Final.zip
 	fi
 	cd $BASE_CORE
 }
@@ -168,6 +186,16 @@ install_wildfly(){
 
 	fi
 	copy_axis_to_wildfly $JBOSS_HOME
+}
+
+copy_postgres_driver_to_wildfly(){
+#	[[ $1 ]] && JBOSS_HOME=$1
+	if [ -d $JBOSS_HOME/standalone/deployments/postgresql-9.2-1002.jdbc4.jar ] ; then
+		echo "postgresql-9.2-1002.jdbc4.jar already copied to deployments"
+	else
+		cp $BASE/packages/postgresql-9.2-1002.jdbc4.jar $JBOSS_HOME/standalone/deployments/postgresql-9.2-1002.jdbc4.jar
+
+	fi
 }
 
 copy_axis_to_wildfly(){
