@@ -193,7 +193,7 @@ copy_postgres_driver_to_wildfly(){
 	if [ -d $JBOSS_HOME/standalone/deployments/postgresql-9.2-1002.jdbc4.jar ] ; then
 		echo "postgresql-9.2-1002.jdbc4.jar already copied to deployments"
 	else
-		cp $BASE/packages $JBOSS_HOME/standalone/deployments/postgresql-9.2-1002.jdbc4.jar
+		cp $BASE/packages/postgresql-9.2-1002.jdbc4.jar $JBOSS_HOME/standalone/deployments/postgresql-9.2-1002.jdbc4.jar
 
 	fi
 }
